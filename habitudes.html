@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Habitudes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Caveat:wght@500&family=Kalam&family=Gloria+Hallelujah&family=Architects+Daughter&family=Indie+Flower&display=swap">
+<style>
+:root{--paper:#ffffff;--grid:#c9cde6;--ink:#1d1f33;--accent:#c8202f;--hl:#fff3b8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#1b1c26;--grid:#33364d;--ink:#e8e8f0;--accent:#ff6b78;--hl:#3b3820;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#1b1c26;--grid:#33364d;--ink:#e8e8f0;--accent:#ff6b78;--hl:#3b3820;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f,"Patrick Hand"),"Segoe Print","Comic Sans MS",cursive,sans-serif;
+background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:22px 22px}
+main{max-width:480px;margin:0 auto;background:var(--paper);min-height:100vh;padding:0 0 40px}
+nav{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:2px solid var(--ink)}
+nav h1{margin:0;font-size:1.5rem;font-weight:400;text-transform:capitalize}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+nav button{font-size:1.6rem;padding:4px 14px;border:2px solid var(--ink);border-radius:8px}
+table{border-collapse:collapse;width:100%;table-layout:fixed}
+th,td{border:0;border-left:3px solid var(--ink);padding:0;text-align:center}
+th:first-child,td:first-child{border-left:0;width:44px;text-align:right;padding-right:10px}
+th{height:56px;font-size:1.6rem;font-weight:400;border-bottom:3px solid var(--ink);position:sticky;top:env(safe-area-inset-top,0px);background:var(--paper);z-index:2}
+th small{display:block;font-size:.65rem;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+td{height:30px;border-bottom:1px solid color-mix(in srgb,var(--ink) 45%,transparent)}
+tr.wk td{border-top:3px solid var(--ink)}
+tr.today td:first-child{background:var(--hl)}
+td.d{font-size:1.1rem;line-height:1}
+td.c button{display:block;width:100%;height:30px;padding:0;color:var(--ink)}
+td.c button:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+td.c button[aria-pressed="true"]{background-image:linear-gradient(to top right,transparent calc(50% - 1.2px),var(--ink) calc(50% - 1.2px),var(--ink) calc(50% + 1.2px),transparent calc(50% + 1.2px)),linear-gradient(to bottom right,transparent calc(50% - 1.2px),var(--ink) calc(50% - 1.2px),var(--ink) calc(50% + 1.2px),transparent calc(50% + 1.2px))}
+.foot{padding:14px 16px;font-size:.95rem;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.foot select{font:inherit;color:inherit;background:var(--paper);border:1px solid var(--ink);border-radius:6px;padding:2px 6px}
+.foot button{text-decoration:underline}
+.sum td{border-top:3px solid var(--ink);height:34px;font-size:1.1rem;color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+<nav><button id="prev" aria-label="Mois précédent">‹</button><h1 id="title"></h1><button id="next" aria-label="Mois suivant">›</button></nav>
+<table id="grid"></table>
+<div class="foot"><button id="rename">Modifier les habitudes</button><select id="font" aria-label="Police"></select><button id="reset">Effacer ce mois</button></div>
+</main>
+<script>
+(function(){
+var DEF=[{i:"🎤",n:"Chant"},{i:"🎹",n:"Piano"},{i:"🎸",n:"Guitare"},{i:"💻",n:"MAO"},{i:"🏋️",n:"Sport"},{i:"🌐",n:"Network"}];
+var cur=new Date();cur=new Date(cur.getFullYear(),cur.getMonth(),1);
+function rd(k,f){try{var v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}}
+function wr(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+var habits=rd("hab:list2",DEF);
+var mem={};
+function key(){return "hab:"+cur.getFullYear()+"-"+(cur.getMonth()+1)}
+function data(){var k=key();if(!mem[k])mem[k]=rd(k,{});return mem[k]}
+function render(){
+ var y=cur.getFullYear(),m=cur.getMonth(),n=new Date(y,m+1,0).getDate(),d=data(),t=new Date();
+ document.getElementById("title").textContent=cur.toLocaleDateString("fr-FR",{month:"long",year:"numeric"});
+ var h="<tr><th></th>"+habits.map(function(x){return "<th><span aria-hidden='true'>"+x.i+"</span><small>"+x.n+"</small></th>"}).join("")+"</tr>";
+ for(var day=1;day<=n;day++){
+  var dow=new Date(y,m,day).getDay(),cls=[];
+  if(dow===1&&day>1)cls.push("wk");
+  if(t.getFullYear()===y&&t.getMonth()===m&&t.getDate()===day)cls.push("today");
+  h+="<tr class='"+cls.join(" ")+"'><td class='d'>"+day+"</td>"+habits.map(function(x,j){
+   var on=d[day+"-"+j]?"true":"false";
+   return "<td class='c'><button data-k='"+day+"-"+j+"' aria-pressed='"+on+"' aria-label='"+x.n+", jour "+day+"'></button></td>"}).join("")+"</tr>";
+ }
+ h+="<tr class='sum'><td></td>"+habits.map(function(x,j){var c=0;for(var q=1;q<=n;q++)if(d[q+"-"+j])c++;return "<td>"+c+"</td>"}).join("")+"</tr>";
+ document.getElementById("grid").innerHTML=h;
+}
+document.getElementById("grid").addEventListener("click",function(e){
+ var b=e.target.closest("button[data-k]");if(!b)return;
+ var d=data(),k=b.dataset.k;if(d[k])delete d[k];else d[k]=1;
+ wr(key(),d);render();
+});
+document.getElementById("prev").onclick=function(){cur=new Date(cur.getFullYear(),cur.getMonth()-1,1);render()};
+document.getElementById("next").onclick=function(){cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);render()};
+document.getElementById("rename").onclick=function(){
+ habits.forEach(function(x,j){
+  var v=prompt("Habitude "+(j+1)+" : emoji et nom (ex. 🎹 Piano)",x.i+" "+x.n);
+  if(v===null)return;v=v.trim();if(!v)return;
+  var p=v.split(/\s+/);x.i=p.shift();x.n=p.join(" ");
+ });
+ wr("hab:list2",habits);render();
+};
+document.getElementById("reset").onclick=function(){
+ if(confirm("Effacer toutes les cases de ce mois ?")){mem[key()]={};wr(key(),{});render()}
+};
+var fonts=["Patrick Hand","Caveat","Kalam","Gloria Hallelujah","Architects Daughter","Indie Flower"],sel=document.getElementById("font");
+fonts.forEach(function(f){var o=document.createElement("option");o.value=f;o.textContent=f;sel.appendChild(o)});
+function setFont(f){document.documentElement.style.setProperty("--f",'"'+f+'"');sel.value=f}
+setFont(rd("hab:font",fonts[0]));
+sel.onchange=function(){setFont(sel.value);wr("hab:font",sel.value)};
+render();
+})();
+</script>
+</body>
+</html>
